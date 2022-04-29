@@ -1,0 +1,42 @@
+#!/bin/sh
+
+ROOT=$(pwd)
+
+echo "Running scripts before homebrew..."
+cd ./scripts/before
+for f in *.sh; do
+  chmod +x $f
+  bash "$f" -H
+done
+
+cd $ROOT
+
+command -v brew >/dev/null 2>&1 || { echo >&2 "Installing Homebrew..."; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; } 
+ 
+echo "Installing Casks..." 
+while read cask; do
+  if brew info $cask | grep "brew-cask" >/dev/null 2>&1; then
+    echo "$cask is already installed!"
+  else
+    echo "Installing $cask..."
+    brew install --cask $cask
+  fi
+done < ./casks
+
+echo "Installing Formulae's..."
+while read formulae;
+do
+  if brew ls --versions $formulae > /dev/null; then
+    echo "$formulae is already installed!"
+  else 
+    echo "Installing $formulae..."
+    brew install $formuale
+  fi
+done < ./formulae
+
+echo "Running scripts after homebrew..."
+cd ./scripts/after
+for f in *.sh; do
+  chmod +x $f
+  bash "$f" -H 
+done
